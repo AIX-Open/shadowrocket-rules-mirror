@@ -1,0 +1,55 @@
+name: Sync Shadowrocket rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-shadowrocket.yml"
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shadowrocket-rules-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out mirror repository
+        uses: actions/checkout@v4
+
+      - name: Fetch and validate upstream rules
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/blackmatrix7/ios_rule_script.git upstream
+          git -C upstream sparse-checkout set rule/Shadowrocket
+
+          test -d upstream/rule/Shadowrocket
+          rule_count="$(find upstream/rule/Shadowrocket -type f -name '*.list' | wc -l)"
+          test "$rule_count" -gt 0
+          printf 'Validated %s rule lists from upstream.\n' "$rule_count"
+
+      - name: Mirror the full Shadowrocket directory
+        run: |
+          set -euo pipefail
+          mkdir -p Shadowrocket
+          rsync -a --delete upstream/rule/Shadowrocket/ Shadowrocket/
+
+      - name: Commit only verified changes
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Shadowrocket; then
+            echo "No upstream rule changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Shadowrocket
+          git commit -m "chore: sync Shadowrocket rules"
+          git push
