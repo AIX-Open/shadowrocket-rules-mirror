@@ -3,8 +3,6 @@ name: Sync Shadowrocket rules
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/sync-shadowrocket.yml"
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
