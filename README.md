@@ -13,7 +13,7 @@
 在配置的“规则”中新增 `RULE-SET`，策略按规则用途选择。例如 TikTok：
 
 ```
-https://raw.githubusercontent.com/643591978ling/shadowrocket-rules-mirror/main/Shadowrocket/TikTok/TikTok.list
+https://raw.githubusercontent.com/AIX-Open/shadowrocket-rules-mirror/main/Shadowrocket/TikTok/TikTok.list
 ```
 
 规则文件的目录和文件名保持与上游一致。
